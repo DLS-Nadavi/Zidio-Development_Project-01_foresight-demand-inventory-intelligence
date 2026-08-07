@@ -1,126 +1,124 @@
-
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import calendar
 
 st.set_page_config(
-    page_title="FORESIGHT Inventory Intelligence",
+    page_title="Demand Forecast Simulator",
+    page_icon="📈",
     layout="wide"
 )
 
-st.title(
-    "NorthBay Living - Demand & Inventory Intelligence"
+st.title("📈 Demand Forecast Simulator")
+
+# -----------------------------
+# Product
+# -----------------------------
+product = st.selectbox(
+    "Forecast Product",
+    ["10 COLOUR SPACEBOY PEN"]
 )
 
-from pathlib import Path
+st.caption("Available sales history: 2 weeks")
 
-BASE_DIR = Path(__file__).resolve().parent.parent
 
-inventory = pd.read_csv(
-    BASE_DIR / "data" / "inventory_risk_report.csv"
+# -----------------------------
+# Forecast Year
+# -----------------------------
+forecast_year = st.number_input(
+    "Forecast Year",
+    min_value=2020,
+    max_value=2100,
+    value=2030,
+    step=1
 )
 
-# KPI SECTION
 
-col1, col2, col3, col4 = st.columns(4)
+# -----------------------------
+# Forecast Month
+# -----------------------------
+month_names = list(calendar.month_name)[1:]
 
-col1.metric(
-    "Total SKUs",
-    inventory["StockCode"].nunique()
+forecast_month = st.selectbox(
+    "Forecast Month",
+    options=range(1, 13),
+    format_func=lambda x: f"{x} - {month_names[x - 1]}",
+    index=3
 )
 
-col2.metric(
-    "Stockout Risk",
-    (inventory["Risk_Status"] == "Stockout Risk").sum()
+
+# -----------------------------
+# Week of Month
+# -----------------------------
+week_of_month = st.selectbox(
+    "Week of Month",
+    [1, 2, 3, 4, 5],
+    index=2
 )
 
-col3.metric(
-    "Overstock",
-    (inventory["Risk_Status"] == "Overstock").sum()
+
+# -----------------------------
+# Unit Price
+# -----------------------------
+unit_price = st.number_input(
+    "Unit Price",
+    min_value=0.0,
+    value=1.55,
+    step=0.01,
+    format="%.2f"
 )
 
-col4.metric(
-    "Sales At Risk",
-    round(
-        inventory["Sales_At_Risk"].sum(),
-        2
-    )
-)
 
-st.divider()
+# -----------------------------
+# Generate Forecast
+# -----------------------------
+st.markdown("---")
 
-# SKU FILTER
-
-sku = st.selectbox(
-    "Select Product",
-    inventory["Description"].unique()
-)
-
-selected = inventory[
-    inventory["Description"] == sku
-]
-
-st.subheader(
-    "Inventory Decision"
-)
-
-st.dataframe(selected)
-
-# RISK GRAPH
-
-risk = (
-    inventory["Risk_Status"]
-    .value_counts()
-    .reset_index()
-)
-
-risk.columns = [
-    "Risk",
-    "Count"
-]
-
-fig = px.bar(
-    risk,
-    x="Risk",
-    y="Count",
-    title="Inventory Risk Distribution"
-)
-
-st.plotly_chart(
-    fig,
+if st.button(
+    "🚀 Generate Forecast",
+    type="primary",
     use_container_width=True
-)
+):
 
-# ACTION TABLES
+    # Temporary forecast
+    # Replace this with your actual model later
+    forecast_demand = 439
 
-st.subheader(
-    "Priority Reorder List"
-)
+    # Calculate week of year
+    days_before_month = sum(
+        calendar.monthrange(forecast_year, m)[1]
+        for m in range(1, forecast_month)
+    )
 
-st.dataframe(
-    inventory[
-        inventory["Risk_Status"] == "Stockout Risk"
-    ][
-        [
-            "StockCode",
-            "Description",
-            "Recommended_Order_Qty"
-        ]
-    ]
-)
+    week_of_year = (
+        days_before_month // 7
+    ) + week_of_month
 
-st.subheader(
-    "Markdown Clearance List"
-)
+    # Calculate quarter
+    quarter = ((forecast_month - 1) // 3) + 1
 
-st.dataframe(
-    inventory[
-        inventory["Risk_Status"] == "Overstock"
-    ][
-        [
-            "StockCode",
-            "Description",
-            "Capital_Locked"
-        ]
-    ]
-)
+    # Display result
+    st.success(
+        f"Forecast Demand: {forecast_demand} units"
+    )
+
+    # -----------------------------
+    # Forecast Summary
+    # -----------------------------
+    summary = pd.DataFrame([{
+        "Product Name": product,
+        "Forecast Year": forecast_year,
+        "Month": f"{forecast_month} - {month_names[forecast_month - 1]}",
+        "Week of Month": week_of_month,
+        "Week of Year": week_of_year,
+        "Quarter": quarter,
+        "Unit Price": round(unit_price, 2),
+        "Forecast Demand": forecast_demand
+    }])
+
+    st.subheader("📊 Forecast Summary")
+
+    st.dataframe(
+        summary,
+        use_container_width=True,
+        hide_index=True
+    )
