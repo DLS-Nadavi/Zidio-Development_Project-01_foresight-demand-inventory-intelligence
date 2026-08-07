@@ -12,8 +12,12 @@ st.title(
     "NorthBay Living - Demand & Inventory Intelligence"
 )
 
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 inventory = pd.read_csv(
-    "foresight/data/inventory_risk_report.csv"
+    BASE_DIR / "data" / "inventory_risk_report.csv"
 )
 
 # KPI SECTION
