@@ -1,0 +1,3 @@
+Model,WAPE,RMSE,Bias
+Seasonal Naive,0.8648,157.14,-11.0046
+XGBoost,0.7094,111.54,-13.8798
