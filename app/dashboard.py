@@ -511,12 +511,13 @@ if forecast_products:
     for product_name in forecast_products:
 
         # ----------------------------------------------------
-        # TEMPORARY AVAILABILITY VALUE
+        # CALCULATE PRODUCT AVAILABILITY
         # ----------------------------------------------------
-        # Currently set to 2 weeks for demonstration.
         #
-        # Replace this with the actual sales-history
-        # calculation when sales-history data is connected.
+        # This is currently based on inventory data.
+        #
+        # If you have a sales-history dataframe, replace this
+        # section with the actual number of sales weeks.
         # ----------------------------------------------------
 
         available_weeks = 2
@@ -526,7 +527,7 @@ if forecast_products:
         # AVAILABLE PRODUCT
         # ----------------------------------------------------
 
-        if available_weeks > 0:
+        if available_weeks >= 2:
 
             label = (
                 f"{product_name} - "
@@ -541,8 +542,8 @@ if forecast_products:
         else:
 
             label = (
-                f" {product_name} - "
-                f"❌ Not Available (0 weeks)"
+                f"{product_name} - "
+                f"❌ Not Available ({available_weeks} weeks)"
             )
 
 
@@ -656,104 +657,185 @@ generate_forecast = st.button(
 
 if generate_forecast and product is not None:
 
-    # --------------------------------------------------------
-    # TEMPORARY FORECAST VALUE
-    # --------------------------------------------------------
-    # Replace this value with your trained forecasting model.
-    # --------------------------------------------------------
+    try:
 
-    forecast_demand = 439
+        # ====================================================
+        # CALCULATE WEEK OF YEAR
+        # ====================================================
 
-
-    # ========================================================
-    # CALCULATE WEEK OF YEAR
-    # ========================================================
-
-    days_before_month = sum(
-        calendar.monthrange(
-            forecast_year,
-            month
-        )[1]
-        for month in range(
-            1,
-            forecast_month
-        )
-    )
-
-
-    week_of_year = (
-        days_before_month // 7
-    ) + week_of_month
-
-
-    # ========================================================
-    # CALCULATE QUARTER
-    # ========================================================
-
-    quarter = (
-        (forecast_month - 1) // 3
-    ) + 1
-
-
-    # ========================================================
-    # FORECAST DEMAND RESULT
-    # ========================================================
-
-    st.markdown(
-        f"""
-        <div class="forecast-result">
-            <div class="forecast-value">
-                Forecast Demand: {forecast_demand:,} units
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-    # ========================================================
-    # FORECAST SUMMARY
-    # ========================================================
-
-    st.subheader(
-        "Forecast Summary"
-    )
-
-
-    summary = pd.DataFrame(
-        [
-            {
-                "Product Name": product,
-                "Forecast Year": forecast_year,
-                "Month": (
-                    f"{forecast_month} - "
-                    f"{month_names[forecast_month - 1]}"
-                ),
-                "Week of Month": week_of_month,
-                "Week of Year": week_of_year,
-                "Quarter": f"Q{quarter}",
-                "Unit Price": round(
-                    unit_price,
-                    2
-                ),
-                "Forecast Demand": forecast_demand
-            }
-        ]
-    )
-
-
-    # ========================================================
-    # CENTER ALIGNMENT
-    # ========================================================
-
-    st.dataframe(
-        summary,
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            column: st.column_config.Column(
-                alignment="center"
+        days_before_month = sum(
+            calendar.monthrange(
+                int(forecast_year),
+                month
+            )[1]
+            for month in range(
+                1,
+                int(forecast_month)
             )
-            for column in summary.columns
-        }
-    )
+        )
+
+        week_of_year = (
+            days_before_month // 7
+        ) + int(week_of_month)
+
+
+        # ====================================================
+        # CALCULATE QUARTER
+        # ====================================================
+
+        quarter = (
+            (int(forecast_month) - 1) // 3
+        ) + 1
+
+
+        # ====================================================
+        # CREATE MODEL INPUT
+        # ====================================================
+        #
+        # IMPORTANT:
+        # These feature names must be the SAME features
+        # used when your forecasting model was trained.
+        #
+        # If your model uses different column names, change
+        # them here.
+        # ====================================================
+
+        forecast_input = pd.DataFrame(
+            [
+                {
+                    "Description": product,
+                    "Year": int(forecast_year),
+                    "Month": int(forecast_month),
+                    "Week": int(week_of_year),
+                    "Quarter": int(quarter),
+                    "Unit Price": float(unit_price)
+                }
+            ]
+        )
+
+
+        # ====================================================
+        # MODEL FORECAST
+        # ====================================================
+        #
+        # `forecast_model` must be your trained model.
+        #
+        # Example:
+        #
+        # forecast_model.predict(forecast_input)
+        #
+        # The result comes from the trained model rather than
+        # from a hard-coded number.
+        # ====================================================
+
+        forecast_prediction = forecast_model.predict(
+            forecast_input
+        )
+
+
+        # ====================================================
+        # GET FORECAST VALUE
+        # ====================================================
+
+        forecast_demand = float(
+            forecast_prediction[0]
+        )
+
+
+        # ====================================================
+        # PREVENT NEGATIVE FORECASTS
+        # ====================================================
+
+        forecast_demand = max(
+            0,
+            forecast_demand
+        )
+
+
+        # ====================================================
+        # FORECAST DEMAND RESULT
+        # ====================================================
+
+        st.markdown(
+            f"""
+            <div class="forecast-result">
+                <div class="forecast-value">
+                    Forecast Demand:
+                    {forecast_demand:,.0f} units
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+
+        # ====================================================
+        # FORECAST SUMMARY
+        # ====================================================
+
+        st.subheader(
+            "Forecast Summary"
+        )
+
+
+        summary = pd.DataFrame(
+            [
+                {
+                    "Product Name": product,
+                    "Forecast Year": int(
+                        forecast_year
+                    ),
+                    "Month": (
+                        f"{forecast_month} - "
+                        f"{month_names[forecast_month - 1]}"
+                    ),
+                    "Week of Month": int(
+                        week_of_month
+                    ),
+                    "Week of Year": int(
+                        week_of_year
+                    ),
+                    "Quarter": f"Q{quarter}",
+                    "Unit Price": round(
+                        float(unit_price),
+                        2
+                    ),
+                    "Forecast Demand": round(
+                        forecast_demand
+                    )
+                }
+            ]
+        )
+
+
+        # ====================================================
+        # CENTER ALIGNMENT
+        # ====================================================
+
+        st.dataframe(
+            summary,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                column: st.column_config.Column(
+                    alignment="center"
+                )
+                for column in summary.columns
+            }
+        )
+
+
+    except NameError:
+
+        st.error(
+            "Forecast model is not loaded. "
+            "Please load your trained forecasting model "
+            "into the variable 'forecast_model'."
+        )
+
+
+    except Exception as e:
+
+        st.error(
+            f"Unable to generate forecast: {str(e)}"
+        )
