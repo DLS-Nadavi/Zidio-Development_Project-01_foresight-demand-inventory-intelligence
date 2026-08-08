@@ -836,8 +836,6 @@ if product is not None:
     # USER-EDITABLE UNIT PRICE
     # ========================================================
 
-    st.subheader("Unit Price")
-
     unit_price = st.number_input(
         "Unit Price",
         min_value=0.0,
