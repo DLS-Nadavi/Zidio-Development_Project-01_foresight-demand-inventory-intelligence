@@ -515,27 +515,24 @@ if forecast_products:
 
     product_options = {}
 
-    for product_name in forecast_products:
+for product_name in forecast_products:
 
-        # Temporary availability value.
-        # Replace with actual sales-history calculation.
-        available_weeks = 2
+    # Temporary availability value.
+    # Replace with actual sales-history calculation later.
+    available_weeks = 2
 
-        if available_weeks > 0:
+    if available_weeks > 0:
+        label = (
+            f"✅ {product_name} - "
+            f"Available ({available_weeks} weeks)"
+        )
+    else:
+        label = (
+            f"❌ {product_name} - "
+            f"Not Available (0 weeks)"
+        )
 
-            label = (
-                f"{product_name} - "
-                f"Available ({available_weeks} weeks)"
-            )
-
-        else:
-
-            label = (
-                f"{product_name} - "
-                f"Not Available (0 weeks)"
-            )
-
-        product_options[label] = product_name
+    product_options[label] = product_name
 
 
     # --------------------------------------------------------
