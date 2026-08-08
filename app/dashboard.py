@@ -958,46 +958,69 @@ if generate_forecast:
                 st.stop()
 
 
-            product_history["Units_Sold"] = pd.to_numeric(
-                product_history["Units_Sold"],
-                errors="coerce"
-            )
+# ============================================================
+# VALIDATE HISTORICAL DEMAND
+# ============================================================
 
-            product_history = product_history.dropna(
-                subset=["Units_Sold"]
-            )
+product_history["Units_Sold"] = pd.to_numeric(
+    product_history["Units_Sold"],
+    errors="coerce"
+)
+
+product_history = product_history.dropna(
+    subset=["Units_Sold"]
+)
+
+if len(product_history) < 2:
+
+    st.error(
+        f"'{product}' has only "
+        f"{len(product_history)} valid historical demand record(s). "
+        "At least 2 are required for forecasting."
+    )
+
+    st.stop()
 
 
-            # =================================================
-            # MINIMUM HISTORY CHECK
-            # =================================================
+# ============================================================
+# SORT HISTORY
+# ============================================================
 
-            if len(product_history) < 2:
+if "Date" in product_history.columns:
 
-                st.error(
-                    "At least two historical demand "
-                    "records are required."
-                )
+    product_history["Date"] = pd.to_datetime(
+        product_history["Date"],
+        errors="coerce"
+    )
 
-                st.stop()
+    product_history = (
+        product_history
+        .dropna(subset=["Date"])
+        .sort_values("Date")
+    )
 
 
-            # =================================================
-            # DEMAND LAG FEATURES
-            # =================================================
+# ============================================================
+# GET LATEST TWO DEMAND VALUES
+# ============================================================
 
-            demand_lag_1 = float(
-                product_history["Units_Sold"].iloc[-1]
-            )
+demand_lag_1 = float(
+    product_history["Units_Sold"].iloc[-1]
+)
 
-            demand_lag_2 = float(
-                product_history["Units_Sold"].iloc[-2]
-            )
+demand_lag_2 = float(
+    product_history["Units_Sold"].iloc[-2]
+)
 
-            rolling_mean_2 = (
-                demand_lag_1
-                + demand_lag_2
-            ) / 2
+
+# ============================================================
+# CALCULATE ROLLING MEAN
+# ============================================================
+
+rolling_mean_2 = (
+    demand_lag_1 +
+    demand_lag_2
+) / 2
 
 
             # =================================================
