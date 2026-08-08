@@ -778,14 +778,81 @@ week_of_month = st.selectbox(
 # UNIT PRICE
 # ============================================================
 
-unit_price = st.number_input(
-    "Unit Price",
-    min_value=0.0,
-    value=1.55,
-    step=0.01,
-    format="%.2f",
-    key="df_simulator_price_01"
+# ============================================================
+# UNIT PRICE
+# ============================================================
+
+# Get the latest actual price for the selected product
+
+if "Unit_Price" not in product_history.columns:
+
+    st.error(
+        "Unit_Price column is missing from the forecast dataset."
+    )
+
+    st.stop()
+
+
+product_history["Unit_Price"] = pd.to_numeric(
+    product_history["Unit_Price"],
+    errors="coerce"
 )
+
+valid_prices = (
+    product_history["Unit_Price"]
+    .dropna()
+)
+
+if valid_prices.empty:
+
+    st.error(
+        f"No valid Unit Price was found for '{product}'."
+    )
+
+    st.stop()
+
+
+# Latest actual product price
+automatic_unit_price = float(
+    valid_prices.iloc[-1]
+)
+
+
+# ============================================================
+# PRICE SIMULATION
+# ============================================================
+
+simulate_price = st.checkbox(
+    "Simulate Price Change",
+    value=False,
+    key="df_simulator_price_simulation_01"
+)
+
+
+if simulate_price:
+
+    unit_price = st.number_input(
+        "Simulation Price",
+        min_value=0.0,
+        value=float(automatic_unit_price),
+        step=0.01,
+        format="%.2f",
+        key="df_simulator_simulation_price_01"
+    )
+
+    st.caption(
+        f"Actual product price: "
+        f"{automatic_unit_price:,.2f}"
+    )
+
+else:
+
+    unit_price = automatic_unit_price
+
+    st.info(
+        f"Current Unit Price: "
+        f"{unit_price:,.2f}"
+    )
 
 
 st.write("")
