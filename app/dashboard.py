@@ -487,21 +487,43 @@ FORECAST_DATA_FILE = (
 )
 
 forecast_model = None
-forecast_features = []
+forecast_features = [
+    "Unit_Price",
+    "Year",
+    "Month",
+    "Quarter",
+    "Week",
+    "Demand_Lag_1",
+    "Demand_Lag_2",
+    "Rolling_Mean_2"
+]
+
 forecast_history = None
 
 
-# ------------------------------------------------------------
-# Load trained model
-# ------------------------------------------------------------
+# ============================================================
+# LOAD TRAINED MODEL
+# ============================================================
 
 if MODEL_FILE.exists():
 
     try:
-        model_package = joblib.load(MODEL_FILE)
 
+        model_package = joblib.load(
+            MODEL_FILE
+        )
+
+        # Model saved from Google Colab
         forecast_model = model_package["model"]
-        forecast_features = model_package["features"]
+
+        # Use the features saved with the model if available
+        saved_features = model_package.get(
+            "features",
+            forecast_features
+        )
+
+        if saved_features:
+            forecast_features = saved_features
 
     except Exception as e:
 
@@ -520,9 +542,9 @@ else:
     )
 
 
-# ------------------------------------------------------------
-# Load forecasting history
-# ------------------------------------------------------------
+# ============================================================
+# LOAD FORECAST DATASET
+# ============================================================
 
 if FORECAST_DATA_FILE.exists():
 
@@ -553,7 +575,9 @@ else:
 # 6. DEMAND FORECAST SIMULATOR
 # ============================================================
 
-st.header("Demand Forecast Simulator")
+st.header(
+    "Demand Forecast Simulator"
+)
 
 st.write(
     "Enter the forecast parameters and generate the expected demand."
@@ -561,7 +585,7 @@ st.write(
 
 
 # ============================================================
-# FORECAST PRODUCTS
+# FORECAST PRODUCT
 # ============================================================
 
 if inventory_valid:
@@ -588,13 +612,19 @@ if forecast_products:
 
         available_weeks = 0
 
-        # ----------------------------------------------------
-        # Calculate actual sales-history availability
-        # ----------------------------------------------------
+
+        # ====================================================
+        # FIND PRODUCT HISTORY
+        # ====================================================
 
         if forecast_history is not None:
 
             history_product = forecast_history.copy()
+
+
+            # ------------------------------------------------
+            # Match using Description
+            # ------------------------------------------------
 
             if "Description" in history_product.columns:
 
@@ -609,10 +639,17 @@ if forecast_products:
                     == product_name
                 ]
 
+
+            # ------------------------------------------------
+            # Match using StockCode
+            # ------------------------------------------------
+
             elif "StockCode" in history_product.columns:
 
                 inventory_product = inventory[
-                    inventory["Description"].astype(str).str.strip()
+                    inventory["Description"]
+                    .astype(str)
+                    .str.strip()
                     == product_name
                 ]
 
@@ -633,9 +670,10 @@ if forecast_products:
                         == stock_code
                     ]
 
-            # ------------------------------------------------
-            # Count unique sales weeks
-            # ------------------------------------------------
+
+            # =================================================
+            # COUNT AVAILABLE WEEKS
+            # =================================================
 
             if not history_product.empty:
 
@@ -647,7 +685,9 @@ if forecast_products:
                     ).dropna()
 
                     available_weeks = (
-                        dates.dt.to_period("W")
+                        dates
+                        .dt
+                        .to_period("W")
                         .nunique()
                     )
 
@@ -659,9 +699,9 @@ if forecast_products:
                     )
 
 
-        # ----------------------------------------------------
-        # Product availability label
-        # ----------------------------------------------------
+        # ====================================================
+        # AVAILABILITY LABEL
+        # ====================================================
 
         if available_weeks > 0:
 
@@ -677,6 +717,7 @@ if forecast_products:
                 f"❌ Not Available (0 weeks)"
             )
 
+
         product_options[label] = product_name
 
 
@@ -686,7 +727,9 @@ if forecast_products:
 
     selected_product_label = st.selectbox(
         "Forecast Product",
-        options=list(product_options.keys()),
+        options=list(
+            product_options.keys()
+        ),
         key="df_simulator_product_select_01"
     )
 
@@ -762,7 +805,7 @@ unit_price = st.number_input(
 
 
 # ============================================================
-# GENERATE FORECAST
+# GENERATE FORECAST BUTTON
 # ============================================================
 
 generate_forecast = st.button(
@@ -772,12 +815,18 @@ generate_forecast = st.button(
 
 
 # ============================================================
-# FORECAST
+# GENERATE FORECAST
 # ============================================================
 
-if generate_forecast and product is not None:
+if generate_forecast:
 
-    if forecast_model is None:
+    if product is None:
+
+        st.error(
+            "Please select a forecast product."
+        )
+
+    elif forecast_model is None:
 
         st.error(
             "Demand forecasting model is not loaded."
@@ -786,18 +835,22 @@ if generate_forecast and product is not None:
     elif forecast_history is None:
 
         st.error(
-            "Forecast history dataset is not loaded."
+            "Forecast dataset is not loaded."
         )
 
     else:
 
         try:
 
+            # =================================================
+            # COPY FORECAST HISTORY
+            # =================================================
+
             history = forecast_history.copy()
 
 
             # =================================================
-            # IDENTIFY SELECTED PRODUCT HISTORY
+            # FIND SELECTED PRODUCT HISTORY
             # =================================================
 
             if "Description" in history.columns:
@@ -809,24 +862,29 @@ if generate_forecast and product is not None:
                 )
 
                 product_history = history[
-                    history["Description"] == product
+                    history["Description"]
+                    == product
                 ].copy()
+
 
             elif "StockCode" in history.columns:
 
                 selected_inventory = inventory[
-                    inventory["Description"].astype(str).str.strip()
+                    inventory["Description"]
+                    .astype(str)
+                    .str.strip()
                     == product
                 ]
 
                 if selected_inventory.empty:
 
                     st.error(
-                        "Selected product could not be matched "
-                        "to the forecast history."
+                        "Unable to match the selected "
+                        "product with the forecast dataset."
                     )
 
                     st.stop()
+
 
                 stock_code = str(
                     selected_inventory.iloc[0]["StockCode"]
@@ -839,18 +897,29 @@ if generate_forecast and product is not None:
                 )
 
                 product_history = history[
-                    history["StockCode"] == stock_code
+                    history["StockCode"]
+                    == stock_code
                 ].copy()
+
 
             else:
 
-                product_history = history.copy()
+                st.error(
+                    "Forecast dataset must contain "
+                    "Description or StockCode."
+                )
 
+                st.stop()
+
+
+            # =================================================
+            # CHECK PRODUCT HISTORY
+            # =================================================
 
             if product_history.empty:
 
                 st.error(
-                    "No historical demand data was found "
+                    f"No historical demand data was found "
                     f"for '{product}'."
                 )
 
@@ -858,7 +927,7 @@ if generate_forecast and product is not None:
 
 
             # =================================================
-            # SORT HISTORY BY DATE
+            # SORT BY DATE
             # =================================================
 
             if "Date" in product_history.columns:
@@ -876,8 +945,18 @@ if generate_forecast and product is not None:
 
 
             # =================================================
-            # DEMAND HISTORY
+            # CHECK UNITS SOLD
             # =================================================
+
+            if "Units_Sold" not in product_history.columns:
+
+                st.error(
+                    "Forecast dataset does not contain "
+                    "'Units_Sold'."
+                )
+
+                st.stop()
+
 
             product_history["Units_Sold"] = pd.to_numeric(
                 product_history["Units_Sold"],
@@ -889,28 +968,30 @@ if generate_forecast and product is not None:
             )
 
 
+            # =================================================
+            # MINIMUM HISTORY CHECK
+            # =================================================
+
             if len(product_history) < 2:
 
                 st.error(
-                    "At least two historical demand records "
-                    "are required to generate this forecast."
+                    "At least two historical demand "
+                    "records are required."
                 )
 
                 st.stop()
 
 
             # =================================================
-            # CALCULATE LAG FEATURES
+            # DEMAND LAG FEATURES
             # =================================================
 
             demand_lag_1 = float(
-                product_history["Units_Sold"]
-                .iloc[-1]
+                product_history["Units_Sold"].iloc[-1]
             )
 
             demand_lag_2 = float(
-                product_history["Units_Sold"]
-                .iloc[-2]
+                product_history["Units_Sold"].iloc[-2]
             )
 
             rolling_mean_2 = (
@@ -920,7 +1001,7 @@ if generate_forecast and product is not None:
 
 
             # =================================================
-            # CALCULATE WEEK OF YEAR
+            # WEEK OF YEAR
             # =================================================
 
             days_before_month = sum(
@@ -940,7 +1021,7 @@ if generate_forecast and product is not None:
 
 
             # =================================================
-            # CALCULATE QUARTER
+            # QUARTER
             # =================================================
 
             quarter = (
@@ -949,7 +1030,7 @@ if generate_forecast and product is not None:
 
 
             # =================================================
-            # CREATE MODEL INPUT
+            # MODEL INPUT
             # =================================================
 
             forecast_input = pd.DataFrame(
@@ -975,18 +1056,24 @@ if generate_forecast and product is not None:
                             week_of_year
                         ),
 
-                        "Demand_Lag_1": demand_lag_1,
+                        "Demand_Lag_1": float(
+                            demand_lag_1
+                        ),
 
-                        "Demand_Lag_2": demand_lag_2,
+                        "Demand_Lag_2": float(
+                            demand_lag_2
+                        ),
 
-                        "Rolling_Mean_2": rolling_mean_2
+                        "Rolling_Mean_2": float(
+                            rolling_mean_2
+                        )
                     }
                 ]
             )
 
 
             # =================================================
-            # USE TRAINING FEATURES
+            # CHECK MODEL FEATURES
             # =================================================
 
             missing_features = [
@@ -998,13 +1085,19 @@ if generate_forecast and product is not None:
             if missing_features:
 
                 st.error(
-                    "The model requires features that are "
-                    "not available: "
-                    + ", ".join(missing_features)
+                    "The forecasting model requires "
+                    "missing features: "
+                    + ", ".join(
+                        missing_features
+                    )
                 )
 
                 st.stop()
 
+
+            # =================================================
+            # ORDER FEATURES EXACTLY LIKE TRAINING
+            # =================================================
 
             forecast_input = forecast_input[
                 forecast_features
@@ -1018,6 +1111,11 @@ if generate_forecast and product is not None:
             prediction = forecast_model.predict(
                 forecast_input
             )
+
+
+            # =================================================
+            # FORECAST VALUE
+            # =================================================
 
             forecast_demand = max(
                 0,
@@ -1050,28 +1148,36 @@ if generate_forecast and product is not None:
                 "Forecast Summary"
             )
 
+
             summary = pd.DataFrame(
                 [
                     {
                         "Product Name": product,
+
                         "Forecast Year": int(
                             forecast_year
                         ),
+
                         "Month": (
                             f"{forecast_month} - "
                             f"{month_names[forecast_month - 1]}"
                         ),
+
                         "Week of Month": int(
                             week_of_month
                         ),
+
                         "Week of Year": int(
                             week_of_year
                         ),
+
                         "Quarter": f"Q{quarter}",
+
                         "Unit Price": round(
                             float(unit_price),
                             2
                         ),
+
                         "Forecast Demand": round(
                             forecast_demand
                         )
@@ -1081,7 +1187,7 @@ if generate_forecast and product is not None:
 
 
             # =================================================
-            # CENTER ALIGN TABLE
+            # CENTER ALIGN SUMMARY TABLE
             # =================================================
 
             st.dataframe(
