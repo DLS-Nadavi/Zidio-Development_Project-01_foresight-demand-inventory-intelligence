@@ -471,6 +471,92 @@ st.divider()
 
 
 # ============================================================
+# LOAD DEMAND FORECASTING MODEL
+# ============================================================
+
+BASE_DIR = Path(__file__).resolve().parent
+
+MODEL_FILE = (
+    BASE_DIR.parent
+    / "models"
+    / "foresight_forecast_model.pkl"
+)
+
+FORECAST_DATA_FILE = (
+    BASE_DIR.parent
+    / "data"
+    / "forecast_dataset.csv"
+)
+
+
+forecast_model = None
+forecast_features = []
+forecast_history = None
+
+
+# ------------------------------------------------------------
+# LOAD MODEL PACKAGE
+# ------------------------------------------------------------
+
+if MODEL_FILE.exists():
+
+    try:
+
+        model_package = joblib.load(
+            MODEL_FILE
+        )
+
+        forecast_model = model_package["model"]
+
+        forecast_features = model_package["features"]
+
+    except Exception as e:
+
+        st.error(
+            f"Unable to load forecasting model: {e}"
+        )
+
+else:
+
+    st.warning(
+        "Demand forecasting model was not found."
+    )
+
+    st.info(
+        f"Expected model location: {MODEL_FILE}"
+    )
+
+
+# ------------------------------------------------------------
+# LOAD FORECAST HISTORY
+# ------------------------------------------------------------
+
+if FORECAST_DATA_FILE.exists():
+
+    try:
+
+        forecast_history = pd.read_csv(
+            FORECAST_DATA_FILE
+        )
+
+    except Exception as e:
+
+        st.error(
+            f"Unable to load forecast dataset: {e}"
+        )
+
+else:
+
+    st.warning(
+        "Forecast dataset was not found."
+    )
+
+    st.info(
+        f"Expected file location: {FORECAST_DATA_FILE}"
+    )
+
+
+# ============================================================
 # 6. DEMAND FORECAST SIMULATOR
 # ============================================================
 
