@@ -611,14 +611,17 @@ if forecast_products:
         available_weeks = 0
 
         # ----------------------------------------------------
-        # Calculate actual available sales weeks
+        # GET PRODUCT HISTORY
         # ----------------------------------------------------
 
         if forecast_history is not None:
 
             history_product = forecast_history.copy()
 
+            # ------------------------------------------------
             # Match by Description
+            # ------------------------------------------------
+
             if "Description" in history_product.columns:
 
                 history_product["Description"] = (
@@ -628,11 +631,13 @@ if forecast_products:
                 )
 
                 history_product = history_product[
-                    history_product["Description"]
-                    == product_name
+                    history_product["Description"] == product_name
                 ].copy()
 
-            # Match by StockCode
+            # ------------------------------------------------
+            # Otherwise match by StockCode
+            # ------------------------------------------------
+
             elif "StockCode" in history_product.columns:
 
                 inventory_product = inventory[
@@ -655,27 +660,52 @@ if forecast_products:
                     )
 
                     history_product = history_product[
-                        history_product["StockCode"]
-                        == stock_code
+                        history_product["StockCode"] == stock_code
                     ].copy()
 
+
             # ------------------------------------------------
-            # Count available weeks
+            # Count valid historical demand weeks
             # ------------------------------------------------
 
-            if not history_product.empty:
+            if (
+                not history_product.empty
+                and "Units_Sold" in history_product.columns
+            ):
+
+                history_product["Units_Sold"] = pd.to_numeric(
+                    history_product["Units_Sold"],
+                    errors="coerce"
+                )
+
+                history_product = history_product.dropna(
+                    subset=["Units_Sold"]
+                )
+
+                # --------------------------------------------
+                # Count unique weeks using Date
+                # --------------------------------------------
 
                 if "Date" in history_product.columns:
 
-                    dates = pd.to_datetime(
+                    history_product["Date"] = pd.to_datetime(
                         history_product["Date"],
                         errors="coerce"
-                    ).dropna()
+                    )
+
+                    history_product = history_product.dropna(
+                        subset=["Date"]
+                    )
 
                     available_weeks = (
-                        dates.dt.to_period("W")
+                        history_product["Date"]
+                        .dt.to_period("W")
                         .nunique()
                     )
+
+                # --------------------------------------------
+                # Fallback to Week column
+                # --------------------------------------------
 
                 elif "Week" in history_product.columns:
 
@@ -683,6 +713,7 @@ if forecast_products:
                         history_product["Week"]
                         .nunique()
                     )
+
 
         # ----------------------------------------------------
         # Availability label
@@ -715,8 +746,9 @@ if forecast_products:
         key="df_simulator_product_select_01"
     )
 
-    product = product_options[selected_product_label]
-
+    product = product_options[
+        selected_product_label
+    ]
 
 else:
 
@@ -734,7 +766,7 @@ else:
 if product is not None:
 
     # ========================================================
-    # GET PRODUCT HISTORY
+    # GET SELECTED PRODUCT HISTORY
     # ========================================================
 
     product_history = pd.DataFrame()
@@ -788,6 +820,7 @@ if product is not None:
                     history["StockCode"] == stock_code
                 ].copy()
 
+
     # ========================================================
     # FORECAST YEAR
     # ========================================================
@@ -832,7 +865,7 @@ if product is not None:
     )
 
 
-        # ========================================================
+    # ========================================================
     # AUTOMATIC UNIT PRICE
     # ========================================================
 
@@ -848,7 +881,7 @@ if product is not None:
             )
 
             # ------------------------------------------------
-            # Sort by Date so latest price is selected
+            # Sort by Date
             # ------------------------------------------------
 
             if "Date" in product_history.columns:
@@ -862,6 +895,10 @@ if product is not None:
                     product_history
                     .sort_values("Date")
                 )
+
+            # ------------------------------------------------
+            # Get latest valid price
+            # ------------------------------------------------
 
             valid_prices = (
                 product_history["Unit_Price"]
@@ -893,7 +930,7 @@ if product is not None:
         "selected product. You can change it if required."
     )
 
-    
+
     # ========================================================
     # GENERATE FORECAST BUTTON
     # ========================================================
@@ -981,7 +1018,17 @@ if product is not None:
 
 
                 # =================================================
-                # CHECK HISTORY
+                # CHECK MINIMUM HISTORY
+                # =================================================
+                #
+                # Model requires:
+                #
+                # Demand_Lag_1
+                # Demand_Lag_2
+                # Rolling_Mean_2
+                #
+                # Therefore at least 2 historical records
+                # are required.
                 # =================================================
 
                 if len(product_history) < 2:
@@ -995,13 +1042,18 @@ if product is not None:
 
 
                 # =================================================
-                # DEMAND LAG FEATURES
+                # DEMAND LAG 1
                 # =================================================
 
                 demand_lag_1 = float(
                     product_history["Units_Sold"]
                     .iloc[-1]
                 )
+
+
+                # =================================================
+                # DEMAND LAG 2
+                # =================================================
 
                 demand_lag_2 = float(
                     product_history["Units_Sold"]
@@ -1010,7 +1062,7 @@ if product is not None:
 
 
                 # =================================================
-                # ROLLING MEAN
+                # ROLLING MEAN 2
                 # =================================================
 
                 rolling_mean_2 = (
@@ -1106,14 +1158,16 @@ if product is not None:
                     st.error(
                         "The model requires features that "
                         "are not available: "
-                        + ", ".join(missing_features)
+                        + ", ".join(
+                            missing_features
+                        )
                     )
 
                     st.stop()
 
 
                 # =================================================
-                # SELECT MODEL FEATURES
+                # SELECT FEATURES
                 # =================================================
 
                 forecast_input = forecast_input[
@@ -1160,7 +1214,6 @@ if product is not None:
                 st.subheader(
                     "Forecast Summary"
                 )
-
 
                 summary = pd.DataFrame(
                     [
