@@ -141,8 +141,6 @@ st.markdown(
 # 1. KPI VALUES
 # ============================================================
 
-st.header("KPI Values")
-
 if inventory is not None:
 
     required_columns = [
