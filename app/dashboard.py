@@ -619,8 +619,10 @@ if generate_forecast:
         background-color: white;
         color: #1f2937;
         border: 1px solid #d1d5db;
-        border-radius: 8px;
+        border-radius: 6px;
         font-weight: 600;
+        padding: 8px 20px;
+        width: auto;
     }
 
     div.stButton > button:hover {
