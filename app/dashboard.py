@@ -43,7 +43,6 @@ if DATA_FILE.exists():
         inventory = pd.read_csv(DATA_FILE)
 
     except Exception as e:
-
         st.error(
             f"Unable to load inventory data: {e}"
         )
@@ -67,7 +66,9 @@ st.markdown(
     """
     <style>
 
-    /* Main page */
+    /* --------------------------------------------------------
+       MAIN PAGE
+       -------------------------------------------------------- */
 
     .block-container {
         padding-top: 2rem;
@@ -75,7 +76,9 @@ st.markdown(
     }
 
 
-    /* KPI cards */
+    /* --------------------------------------------------------
+       KPI CARDS
+       -------------------------------------------------------- */
 
     .kpi-card {
         background-color: #f8fafc;
@@ -99,7 +102,9 @@ st.markdown(
     }
 
 
-    /* Forecast result */
+    /* --------------------------------------------------------
+       FORECAST RESULT
+       -------------------------------------------------------- */
 
     .forecast-result {
         background-color: #d9f5df;
@@ -124,11 +129,24 @@ st.markdown(
     }
 
 
-    /* Section headings */
+    /* --------------------------------------------------------
+       FORECAST BUTTON
+       -------------------------------------------------------- */
 
-    .section-title {
-        margin-top: 15px;
-        margin-bottom: 15px;
+    div.stButton > button {
+        background-color: white;
+        color: #1f2937;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-weight: 600;
+        padding: 8px 20px;
+        width: auto;
+    }
+
+    div.stButton > button:hover {
+        background-color: #f8fafc;
+        color: #1f2937;
+        border: 1px solid #9ca3af;
     }
 
     </style>
@@ -138,7 +156,7 @@ st.markdown(
 
 
 # ============================================================
-# 1. KPI VALUES
+# CHECK INVENTORY DATA
 # ============================================================
 
 if inventory is not None:
@@ -171,7 +189,7 @@ if inventory is not None:
 
         inventory_valid = True
 
-        # Clean columns
+        # Clean data
 
         inventory["Risk_Status"] = (
             inventory["Risk_Status"]
@@ -194,11 +212,16 @@ if inventory is not None:
             errors="coerce"
         ).fillna(0)
 
-
 else:
 
     inventory_valid = False
 
+
+# ============================================================
+# 1. KPI VALUES
+# ============================================================
+
+st.header("KPI Values")
 
 if inventory_valid:
 
@@ -273,7 +296,7 @@ if inventory_valid:
 else:
 
     st.info(
-        "Inventory KPIs will appear when the inventory data is available."
+        "Inventory KPIs will appear when inventory data is available."
     )
 
 
@@ -391,8 +414,7 @@ st.header("Priority Order List")
 if inventory_valid:
 
     reorder_list = inventory[
-        inventory["Risk_Status"]
-        == "Stockout Risk"
+        inventory["Risk_Status"] == "Stockout Risk"
     ][
         [
             "StockCode",
@@ -403,21 +425,17 @@ if inventory_valid:
 
     if not reorder_list.empty:
 
-    st.dataframe(
-        reorder_list,
-        use_container_width=True,
-        hide_index=True
-    )
+        st.dataframe(
+            reorder_list,
+            use_container_width=True,
+            hide_index=True
+        )
 
-    generate_forecast = st.button(
-        "Generate Forecast"
-    )
+    else:
 
-else:
-
-    st.success(
-        "No products currently require urgent reordering."
-    )
+        st.success(
+            "No products currently require urgent reordering."
+        )
 
 else:
 
@@ -438,8 +456,7 @@ st.header("Markdown Clearance List")
 if inventory_valid:
 
     clearance_list = inventory[
-        inventory["Risk_Status"]
-        == "Overstock"
+        inventory["Risk_Status"] == "Overstock"
     ][
         [
             "StockCode",
@@ -483,9 +500,9 @@ st.write(
 )
 
 
-# ------------------------------------------------------------
-# PRODUCT
-# ------------------------------------------------------------
+# ============================================================
+# FORECAST PRODUCT
+# ============================================================
 
 product = st.selectbox(
     "Forecast Product",
@@ -500,9 +517,9 @@ st.caption(
 )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # FORECAST YEAR
-# ------------------------------------------------------------
+# ============================================================
 
 forecast_year = st.number_input(
     "Forecast Year",
@@ -513,9 +530,9 @@ forecast_year = st.number_input(
 )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # FORECAST MONTH
-# ------------------------------------------------------------
+# ============================================================
 
 month_names = list(calendar.month_name)[1:]
 
@@ -528,9 +545,9 @@ forecast_month = st.selectbox(
 )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # WEEK OF MONTH
-# ------------------------------------------------------------
+# ============================================================
 
 week_of_month = st.selectbox(
     "Week of Month",
@@ -539,9 +556,9 @@ week_of_month = st.selectbox(
 )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # UNIT PRICE
-# ------------------------------------------------------------
+# ============================================================
 
 unit_price = st.number_input(
     "Unit Price",
@@ -560,9 +577,9 @@ st.write("")
 # ============================================================
 
 generate_forecast = st.button(
-    "Generate Forecast",
-    use_container_width=True
+    "Generate Forecast"
 )
+
 
 # ============================================================
 # FORECAST RESULT
@@ -573,8 +590,7 @@ if generate_forecast:
     # --------------------------------------------------------
     # TEMPORARY FORECAST VALUE
     # --------------------------------------------------------
-    # Replace this value with the prediction from your
-    # trained forecasting model.
+    # Replace this value with your trained forecasting model.
     # --------------------------------------------------------
 
     forecast_demand = 439
@@ -614,29 +630,19 @@ if generate_forecast:
     # --------------------------------------------------------
 
     st.markdown(
-    """
-    <style>
+        f"""
+        <div class="forecast-result">
+            <div class="forecast-label">
+                Forecast Demand
+            </div>
+            <div class="forecast-value">
+                {forecast_demand:,} units
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
-    div.stButton > button {
-        background-color: white;
-        color: #1f2937;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        font-weight: 600;
-        padding: 8px 20px;
-        width: auto;
-    }
-
-    div.stButton > button:hover {
-        background-color: #f8fafc;
-        color: #1f2937;
-        border: 1px solid #9ca3af;
-    }
-
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
     # --------------------------------------------------------
     # FORECAST DETAILS
