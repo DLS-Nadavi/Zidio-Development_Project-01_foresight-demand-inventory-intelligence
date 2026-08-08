@@ -405,7 +405,9 @@ if inventory_valid:
 
         st.dataframe(
             reorder_list,
-            use_container_width=True,
+            generate_forecast = st.button(
+                "Generate Forecast"
+            )
             hide_index=True
         )
 
