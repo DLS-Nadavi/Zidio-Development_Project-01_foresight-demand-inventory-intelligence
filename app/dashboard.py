@@ -788,8 +788,51 @@ if product is not None:
                     history["StockCode"] == stock_code
                 ].copy()
 
+    # ========================================================
+    # FORECAST YEAR
+    # ========================================================
+
+    forecast_year = st.number_input(
+        "Forecast Year",
+        min_value=2020,
+        max_value=2100,
+        value=2030,
+        step=1,
+        key="df_simulator_year_01"
+    )
+
 
     # ========================================================
+    # FORECAST MONTH
+    # ========================================================
+
+    month_names = list(
+        calendar.month_name
+    )[1:]
+
+    forecast_month = st.selectbox(
+        "Forecast Month",
+        options=range(1, 13),
+        format_func=lambda x:
+            f"{x} - {month_names[x - 1]}",
+        index=3,
+        key="df_simulator_month_01"
+    )
+
+
+    # ========================================================
+    # WEEK OF MONTH
+    # ========================================================
+
+    week_of_month = st.selectbox(
+        "Week of Month",
+        [1, 2, 3, 4, 5],
+        index=2,
+        key="df_simulator_week_01"
+    )
+
+
+        # ========================================================
     # AUTOMATIC UNIT PRICE
     # ========================================================
 
@@ -850,51 +893,7 @@ if product is not None:
         "selected product. You can change it if required."
     )
 
-
-    # ========================================================
-    # FORECAST YEAR
-    # ========================================================
-
-    forecast_year = st.number_input(
-        "Forecast Year",
-        min_value=2020,
-        max_value=2100,
-        value=2030,
-        step=1,
-        key="df_simulator_year_01"
-    )
-
-
-    # ========================================================
-    # FORECAST MONTH
-    # ========================================================
-
-    month_names = list(
-        calendar.month_name
-    )[1:]
-
-    forecast_month = st.selectbox(
-        "Forecast Month",
-        options=range(1, 13),
-        format_func=lambda x:
-            f"{x} - {month_names[x - 1]}",
-        index=3,
-        key="df_simulator_month_01"
-    )
-
-
-    # ========================================================
-    # WEEK OF MONTH
-    # ========================================================
-
-    week_of_month = st.selectbox(
-        "Week of Month",
-        [1, 2, 3, 4, 5],
-        index=2,
-        key="df_simulator_week_01"
-    )
-
-
+    
     # ========================================================
     # GENERATE FORECAST BUTTON
     # ========================================================
