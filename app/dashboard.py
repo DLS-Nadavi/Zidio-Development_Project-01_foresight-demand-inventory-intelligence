@@ -141,8 +141,6 @@ st.markdown(
 # 1. KPI VALUES
 # ============================================================
 
-st.header("KPI Values")
-
 if inventory is not None:
 
     required_columns = [
@@ -559,10 +557,8 @@ st.write("")
 
 generate_forecast = st.button(
     "Generate Forecast",
-    type="primary",
     use_container_width=True
 )
-
 
 # ============================================================
 # FORECAST RESULT
@@ -614,19 +610,27 @@ if generate_forecast:
     # --------------------------------------------------------
 
     st.markdown(
-        f"""
-        <div class="forecast-result">
-            <div class="forecast-label">
-                Forecast Demand
-            </div>
-            <div class="forecast-value">
-                {forecast_demand:,} units
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+    """
+    <style>
 
+    div.stButton > button {
+        background-color: white;
+        color: #1f2937;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    div.stButton > button:hover {
+        background-color: #f8fafc;
+        color: #1f2937;
+        border: 1px solid #9ca3af;
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
     # --------------------------------------------------------
     # FORECAST DETAILS
