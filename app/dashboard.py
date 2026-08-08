@@ -117,7 +117,7 @@ st.markdown(
     }
 
     .forecast-value {
-    font-size: 15px;
+    font-size: 10px;
     font-weight: 700;
     color: #245c32;
 }
