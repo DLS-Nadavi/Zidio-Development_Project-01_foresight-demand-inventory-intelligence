@@ -678,17 +678,15 @@ if generate_forecast and product is not None:
     # --------------------------------------------------------
 
     st.markdown(
-        f"""
-        <div class="forecast-result">
-
-            <div class="forecast-value">
-                Forecast Demand: {forecast_demand:,} units
-            </div>
-
+    f"""
+    <div class="forecast-result">
+        <div class="forecast-value">
+            Forecast Demand: {forecast_demand:,} units
         </div>
-        """,
-        unsafe_allow_html=True
-    )
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 
 
     # ========================================================
