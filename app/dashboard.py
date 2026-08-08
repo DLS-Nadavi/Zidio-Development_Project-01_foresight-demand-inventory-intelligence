@@ -481,26 +481,93 @@ st.write(
 )
 
 
-# ------------------------------------------------------------
-# PRODUCT
-# ------------------------------------------------------------
+# ============================================================
+# FORECAST PRODUCT DROPDOWN
+# ============================================================
 
-product = st.selectbox(
-    "Forecast Product",
-    [
-        "10 COLOUR SPACEBOY PEN"
-    ],
-    key="forecast_product"
-)
+if inventory_valid:
 
-st.caption(
-    "Available sales history: 2 weeks"
-)
+    forecast_products = (
+        inventory["Description"]
+        .dropna()
+        .astype(str)
+        .str.strip()
+        .unique()
+        .tolist()
+    )
+
+else:
+
+    forecast_products = []
 
 
-# ------------------------------------------------------------
+if forecast_products:
+
+    # --------------------------------------------------------
+    # Create dropdown labels
+    # --------------------------------------------------------
+    #
+    # Currently availability is based on the available
+    # inventory product list.
+    #
+    # When your sales-history file is connected, this section
+    # can calculate the actual number of sales weeks.
+    # --------------------------------------------------------
+
+    product_options = {}
+
+    for product_name in forecast_products:
+
+        # Temporary availability value.
+        # Replace with actual sales-history calculation.
+        available_weeks = 2
+
+        if available_weeks > 0:
+
+            label = (
+                f"{product_name} - "
+                f"Available ({available_weeks} weeks)"
+            )
+
+        else:
+
+            label = (
+                f"{product_name} - "
+                f"Not Available (0 weeks)"
+            )
+
+        product_options[label] = product_name
+
+
+    # --------------------------------------------------------
+    # PRODUCT DROPDOWN
+    # --------------------------------------------------------
+
+    selected_product_label = st.selectbox(
+        "Forecast Product",
+        options=list(product_options.keys()),
+        key="forecast_product"
+    )
+
+
+    # Get the original product name
+    product = product_options[
+        selected_product_label
+    ]
+
+
+else:
+
+    st.warning(
+        "No products are available for forecasting."
+    )
+
+    product = None
+
+
+# ============================================================
 # FORECAST YEAR
-# ------------------------------------------------------------
+# ============================================================
 
 forecast_year = st.number_input(
     "Forecast Year",
@@ -511,11 +578,13 @@ forecast_year = st.number_input(
 )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # FORECAST MONTH
-# ------------------------------------------------------------
+# ============================================================
 
-month_names = list(calendar.month_name)[1:]
+month_names = list(
+    calendar.month_name
+)[1:]
 
 forecast_month = st.selectbox(
     "Forecast Month",
@@ -526,9 +595,9 @@ forecast_month = st.selectbox(
 )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # WEEK OF MONTH
-# ------------------------------------------------------------
+# ============================================================
 
 week_of_month = st.selectbox(
     "Week of Month",
@@ -537,9 +606,9 @@ week_of_month = st.selectbox(
 )
 
 
-# ------------------------------------------------------------
+# ============================================================
 # UNIT PRICE
-# ------------------------------------------------------------
+# ============================================================
 
 unit_price = st.number_input(
     "Unit Price",
@@ -558,9 +627,7 @@ st.write("")
 # ============================================================
 
 generate_forecast = st.button(
-    "Generate Forecast",
-    type="primary",
-    use_container_width=True
+    "Generate Forecast"
 )
 
 
@@ -568,13 +635,10 @@ generate_forecast = st.button(
 # FORECAST RESULT
 # ============================================================
 
-if generate_forecast:
+if generate_forecast and product is not None:
 
     # --------------------------------------------------------
     # TEMPORARY FORECAST VALUE
-    # --------------------------------------------------------
-    # Replace this value with the prediction from your
-    # trained forecasting model.
     # --------------------------------------------------------
 
     forecast_demand = 439
@@ -610,59 +674,31 @@ if generate_forecast:
 
 
     # --------------------------------------------------------
-    # LIGHT GREEN FORECAST DEMAND BAR
+    # FORECAST DEMAND
     # --------------------------------------------------------
 
     st.markdown(
         f"""
         <div class="forecast-result">
-            <div class="forecast-label">
-                Forecast Demand
-            </div>
+
             <div class="forecast-value">
-                {forecast_demand:,} units
+                Forecast Demand: {forecast_demand:,} units
             </div>
+
         </div>
         """,
         unsafe_allow_html=True
     )
 
 
-    # --------------------------------------------------------
-    # FORECAST DETAILS
-    # --------------------------------------------------------
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-
-        st.metric(
-            "Unit Price",
-            f"{unit_price:.2f}"
-        )
-
-    with col2:
-
-        st.metric(
-            "Week of Year",
-            week_of_year
-        )
-
-    with col3:
-
-        st.metric(
-            "Quarter",
-            f"Q{quarter}"
-        )
-
-
-    # --------------------------------------------------------
+    # ========================================================
     # FORECAST SUMMARY
-    # --------------------------------------------------------
+    # ========================================================
 
     st.subheader(
         "Forecast Summary"
     )
+
 
     summary = pd.DataFrame(
         [
@@ -684,6 +720,7 @@ if generate_forecast:
             }
         ]
     )
+
 
     st.dataframe(
         summary,
