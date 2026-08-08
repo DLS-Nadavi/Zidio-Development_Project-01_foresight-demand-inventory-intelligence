@@ -468,7 +468,7 @@ else:
 
 st.divider()
 
-```python
+
 # ============================================================
 # 6. DEMAND FORECAST SIMULATOR
 # ============================================================
@@ -757,5 +757,3 @@ if generate_forecast and product is not None:
             for column in summary.columns
         }
     )
-```
-
