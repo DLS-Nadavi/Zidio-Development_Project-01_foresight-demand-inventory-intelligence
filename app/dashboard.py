@@ -720,7 +720,13 @@ if generate_forecast and product is not None:
 
 
     st.dataframe(
-        summary,
-        use_container_width=True,
-        hide_index=True
-    )
+    summary,
+    use_container_width=True,
+    hide_index=True,
+    column_config={
+        column: st.column_config.Column(
+            alignment="center"
+        )
+        for column in summary.columns
+    }
+)
