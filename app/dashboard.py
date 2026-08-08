@@ -2,8 +2,9 @@ import streamlit as st
 import pandas as pd
 import calendar
 import plotly.express as px
-from pathlib import Path
+import joblib
 
+from pathlib import Path
 
 # ============================================================
 # PAGE CONFIGURATION
