@@ -385,7 +385,7 @@ st.divider()
 
 
 # ============================================================
-# 4. PRIORITY ORDER LIST
+# 4. PRIORITY REORDER LIST
 # ============================================================
 
 st.header("Priority Order List")
