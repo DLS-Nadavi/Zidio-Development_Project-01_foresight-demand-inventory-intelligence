@@ -104,7 +104,7 @@ st.markdown(
     .forecast-result {
     background-color: #d9f5df;
     border: 1px solid #a7dfb2;
-    border-radius: 10px;
+    border-radius: 5px;
     padding: 22px;
     margin-top: 20px;
     margin-bottom: 20px;
