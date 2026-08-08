@@ -403,19 +403,21 @@ if inventory_valid:
 
     if not reorder_list.empty:
 
-        st.dataframe(
-            reorder_list,
-            generate_forecast = st.button(
-                "Generate Forecast"
-            )
-            hide_index=True
-        )
+    st.dataframe(
+        reorder_list,
+        use_container_width=True,
+        hide_index=True
+    )
 
-    else:
+    generate_forecast = st.button(
+        "Generate Forecast"
+    )
 
-        st.success(
-            "No products currently require urgent reordering."
-        )
+else:
+
+    st.success(
+        "No products currently require urgent reordering."
+    )
 
 else:
 
