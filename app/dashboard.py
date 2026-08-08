@@ -540,10 +540,10 @@ for product_name in forecast_products:
     # --------------------------------------------------------
 
     selected_product_label = st.selectbox(
-        "Forecast Product",
-        options=list(product_options.keys()),
-        key="forecast_product"
-    )
+    "Forecast Product",
+    options=list(product_options.keys()),
+    key="demand_forecast_product"
+)
 
 
     # Get the original product name
