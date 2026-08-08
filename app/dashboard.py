@@ -102,14 +102,13 @@ st.markdown(
     /* Forecast result */
 
     .forecast-result {
-        background-color: #d9f5df;
-        border: 1px solid #a7dfb2;
-        border-radius: 10px;
-        padding: 22px;
-        margin-top: 20px;
-        margin-bottom: 20px;
-        text-align: center;
-    }
+    background-color: #d9f5df;
+    border: 1px solid #a7dfb2;
+    border-radius: 10px;
+    padding: 22px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
 
     .forecast-label {
         font-size: 15px;
@@ -118,10 +117,10 @@ st.markdown(
     }
 
     .forecast-value {
-        font-size: 32px;
-        font-weight: 700;
-        color: #245c32;
-    }
+    font-size: 15px;
+    font-weight: 700;
+    color: #245c32;
+}
 
 
     /* Section headings */
