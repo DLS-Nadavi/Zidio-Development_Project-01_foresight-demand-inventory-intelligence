@@ -386,7 +386,7 @@ st.divider()
 # 4. PRIORITY REORDER LIST
 # ============================================================
 
-st.header("Priority Order List")
+st.header("Priority Reorder List")
 
 if inventory_valid:
 
