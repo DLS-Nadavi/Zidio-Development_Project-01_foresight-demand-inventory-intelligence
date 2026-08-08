@@ -468,7 +468,7 @@ else:
 
 st.divider()
 
-
+```python
 # ============================================================
 # 6. DEMAND FORECAST SIMULATOR
 # ============================================================
@@ -503,36 +503,50 @@ else:
 if forecast_products:
 
     # --------------------------------------------------------
-    # Create dropdown labels
-    # --------------------------------------------------------
-    #
-    # Currently availability is based on the available
-    # inventory product list.
-    #
-    # When your sales-history file is connected, this section
-    # can calculate the actual number of sales weeks.
+    # Create product dropdown options
     # --------------------------------------------------------
 
     product_options = {}
 
-for product_name in forecast_products:
+    for product_name in forecast_products:
 
-    # Temporary availability value.
-    # Replace with actual sales-history calculation later.
-    available_weeks = 2
+        # ----------------------------------------------------
+        # TEMPORARY AVAILABILITY VALUE
+        # ----------------------------------------------------
+        # Currently set to 2 weeks for demonstration.
+        #
+        # Replace this with the actual sales-history
+        # calculation when sales-history data is connected.
+        # ----------------------------------------------------
 
-    if available_weeks > 0:
-        label = (
-            f"✅ {product_name} - "
-            f"Available ({available_weeks} weeks)"
-        )
-    else:
-        label = (
-            f"❌ {product_name} - "
-            f"Not Available (0 weeks)"
-        )
+        available_weeks = 2
 
-    product_options[label] = product_name
+
+        # ----------------------------------------------------
+        # AVAILABLE PRODUCT
+        # ----------------------------------------------------
+
+        if available_weeks > 0:
+
+            label = (
+                f"✅ {product_name} - "
+                f"Available ({available_weeks} weeks)"
+            )
+
+
+        # ----------------------------------------------------
+        # NON-AVAILABLE PRODUCT
+        # ----------------------------------------------------
+
+        else:
+
+            label = (
+                f"❌ {product_name} - "
+                f"Not Available (0 weeks)"
+            )
+
+
+        product_options[label] = product_name
 
 
     # --------------------------------------------------------
@@ -540,13 +554,16 @@ for product_name in forecast_products:
     # --------------------------------------------------------
 
     selected_product_label = st.selectbox(
-    "Forecast Product",
-    options=list(product_options.keys()),
-    key="demand_forecast_product"
-)
+        "Forecast Product",
+        options=list(product_options.keys()),
+        key="df_simulator_product_select_01"
+    )
 
 
-    # Get the original product name
+    # --------------------------------------------------------
+    # GET ORIGINAL PRODUCT NAME
+    # --------------------------------------------------------
+
     product = product_options[
         selected_product_label
     ]
@@ -570,7 +587,8 @@ forecast_year = st.number_input(
     min_value=2020,
     max_value=2100,
     value=2030,
-    step=1
+    step=1,
+    key="df_simulator_year_01"
 )
 
 
@@ -582,12 +600,14 @@ month_names = list(
     calendar.month_name
 )[1:]
 
+
 forecast_month = st.selectbox(
     "Forecast Month",
     options=range(1, 13),
     format_func=lambda x:
         f"{x} - {month_names[x - 1]}",
-    index=3
+    index=3,
+    key="df_simulator_month_01"
 )
 
 
@@ -598,7 +618,8 @@ forecast_month = st.selectbox(
 week_of_month = st.selectbox(
     "Week of Month",
     [1, 2, 3, 4, 5],
-    index=2
+    index=2,
+    key="df_simulator_week_01"
 )
 
 
@@ -611,7 +632,8 @@ unit_price = st.number_input(
     min_value=0.0,
     value=1.55,
     step=0.01,
-    format="%.2f"
+    format="%.2f",
+    key="df_simulator_price_01"
 )
 
 
@@ -623,7 +645,8 @@ st.write("")
 # ============================================================
 
 generate_forecast = st.button(
-    "Generate Forecast"
+    "Generate Forecast",
+    key="df_simulator_generate_01"
 )
 
 
@@ -636,13 +659,15 @@ if generate_forecast and product is not None:
     # --------------------------------------------------------
     # TEMPORARY FORECAST VALUE
     # --------------------------------------------------------
+    # Replace this value with your trained forecasting model.
+    # --------------------------------------------------------
 
     forecast_demand = 439
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # CALCULATE WEEK OF YEAR
-    # --------------------------------------------------------
+    # ========================================================
 
     days_before_month = sum(
         calendar.monthrange(
@@ -655,34 +680,35 @@ if generate_forecast and product is not None:
         )
     )
 
+
     week_of_year = (
         days_before_month // 7
     ) + week_of_month
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # CALCULATE QUARTER
-    # --------------------------------------------------------
+    # ========================================================
 
     quarter = (
         (forecast_month - 1) // 3
     ) + 1
 
 
-    # --------------------------------------------------------
-    # FORECAST DEMAND
-    # --------------------------------------------------------
+    # ========================================================
+    # FORECAST DEMAND RESULT
+    # ========================================================
 
     st.markdown(
-    f"""
-    <div class="forecast-result">
-        <div class="forecast-value">
-            Forecast Demand: {forecast_demand:,} units
+        f"""
+        <div class="forecast-result">
+            <div class="forecast-value">
+                Forecast Demand: {forecast_demand:,} units
+            </div>
         </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+        """,
+        unsafe_allow_html=True
+    )
 
 
     # ========================================================
@@ -716,14 +742,20 @@ if generate_forecast and product is not None:
     )
 
 
+    # ========================================================
+    # CENTER ALIGNMENT
+    # ========================================================
+
     st.dataframe(
-    summary,
-    use_container_width=True,
-    hide_index=True,
-    column_config={
-        column: st.column_config.Column(
-            alignment="center"
-        )
-        for column in summary.columns
-    }
-)
+        summary,
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            column: st.column_config.Column(
+                alignment="center"
+            )
+            for column in summary.columns
+        }
+    )
+```
+
