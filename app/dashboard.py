@@ -529,8 +529,8 @@ if forecast_products:
         if available_weeks > 0:
 
             label = (
-                f"✅ {product_name} - "
-                f"Available ({available_weeks} weeks)"
+                f"{product_name} - "
+                f"✅ Available ({available_weeks} weeks)"
             )
 
 
@@ -541,8 +541,8 @@ if forecast_products:
         else:
 
             label = (
-                f"❌ {product_name} - "
-                f"Not Available (0 weeks)"
+                f" {product_name} - "
+                f"❌ Not Available (0 weeks)"
             )
 
 
